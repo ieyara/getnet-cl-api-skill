@@ -1,0 +1,9 @@
+{
+  "auth": {
+    "login": "7ffbb7bf1f7361b1200b2e8d74e1d76f",
+    "tranKey": "REPLACE_WITH_BASE64_SHA256_OF_NONCE_SEED_SECRET",
+    "nonce": "REPLACE_WITH_BASE64_RANDOM",
+    "seed": "2026-05-26T18:17:23-04:00"
+  },
+  "internalReference": "1468647381"
+}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GetNet Chile — Web Checkout Lightbox demo</title>
+  <script src="https://checkout.getnet.cl/lightbox.min.js"></script>
+</head>
+<body>
+  <h1>Order #ORDER-2026-0001</h1>
+  <button id="pay">Pay with Getnet</button>
+
+  <script>
+    // Cardholder clicks the Pay button → the merchant backend creates a session
+    // and returns processUrl → the Lightbox SDK opens it as a popup.
+    document.getElementById('pay').addEventListener('click', async () => {
+      const res = await fetch('/api/checkout/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reference: 'ORDER-2026-0001',
+          total: 19990,
+          buyer: { name: 'Luis', surname: 'Pérez', email: 'luis@example.com' }
+        })
+      });
+
+      if (!res.ok) {
+        alert('Could not start payment.');
+        return;
+      }
+
+      const { processUrl } = await res.json();
+      P.init(processUrl); // Getnet SDK global
+    });
+  </script>
+</body>
+</html>

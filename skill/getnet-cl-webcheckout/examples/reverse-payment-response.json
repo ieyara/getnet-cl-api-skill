@@ -1,0 +1,30 @@
+{
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "Se ha reversado el pago correctamente",
+    "date": "2026-05-26T18:54:49-05:00"
+  },
+  "payment": {
+    "status": {
+      "status": "APPROVED",
+      "reason": "00",
+      "message": "Aprobada",
+      "date": "2026-05-26T18:54:49-05:00"
+    },
+    "internalReference": "1502099576",
+    "paymentMethod": "visa",
+    "paymentMethodName": "Visa",
+    "issuerName": "BANCO DE PRUEBAS",
+    "amount": {
+      "from": { "currency": "CLP", "total": -2000 },
+      "to":   { "currency": "CLP", "total": -2000 },
+      "factor": 1
+    },
+    "authorization": "000000",
+    "reference": "123456",
+    "receipt": "1611446089",
+    "franchise": "CR_VS",
+    "refunded": false
+  }
+}

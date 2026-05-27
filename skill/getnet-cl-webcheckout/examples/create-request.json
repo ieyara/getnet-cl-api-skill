@@ -1,0 +1,31 @@
+{
+  "auth": {
+    "login": "7ffbb7bf1f7361b1200b2e8d74e1d76f",
+    "tranKey": "REPLACE_WITH_BASE64_SHA256_OF_NONCE_SEED_SECRET",
+    "nonce": "REPLACE_WITH_BASE64_RANDOM",
+    "seed": "2026-05-26T14:42:22-05:00"
+  },
+  "locale": "es_CL",
+  "buyer": {
+    "name": "Luis",
+    "surname": "Pérez",
+    "email": "luis.perez@example.com",
+    "document": "11111111-9",
+    "documentType": "CLRUT",
+    "mobile": "+56999999999"
+  },
+  "payment": {
+    "reference": "ORDER-2026-0001",
+    "description": "Order 2026-0001",
+    "amount": {
+      "currency": "CLP",
+      "total": 19990
+    },
+    "allowPartial": false
+  },
+  "expiration": "2026-05-26T15:00:00-05:00",
+  "returnUrl": "https://mystore.cl/payments/return?reference=ORDER-2026-0001",
+  "cancelUrl": "https://mystore.cl/payments/cancel",
+  "ipAddress": "190.251.4.78",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36"
+}

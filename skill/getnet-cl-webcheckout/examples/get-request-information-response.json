@@ -1,0 +1,67 @@
+{
+  "requestId": 251623,
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "La petición ha sido aprobada exitosamente",
+    "date": "2026-05-26T14:51:44+00:00"
+  },
+  "request": {
+    "locale": "es_CL",
+    "payer": {
+      "document": "11.111.111-1",
+      "documentType": "CLRUT",
+      "name": "Luis",
+      "surname": "Perez",
+      "email": "luis.perez.prueba@gmail.com",
+      "mobile": "+56999999999"
+    },
+    "payment": {
+      "reference": "TEST_20260526_080946",
+      "description": "Pago de pruebas",
+      "amount": {
+        "currency": "CLP",
+        "total": 1000
+      }
+    },
+    "returnUrl": "https://mystore.cl/return",
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Test Sandbox",
+    "expiration": "2026-05-26T09:45:46-05:00"
+  },
+  "payment": [
+    {
+      "amount": {
+        "to": { "total": 1000, "currency": "CLP" },
+        "from": { "total": 1000, "currency": "CLP" },
+        "factor": 1
+      },
+      "status": {
+        "date": "2026-05-26T14:51:44+00:00",
+        "reason": "00",
+        "status": "APPROVED",
+        "message": "Aprobada"
+      },
+      "receipt": "303312009300",
+      "refunded": false,
+      "franchise": "PS_MC",
+      "reference": "TEST_20260526_080946",
+      "issuerName": "Bank",
+      "authorization": "600236",
+      "paymentMethod": "master",
+      "processorFields": [
+        { "value": "000896",                       "keyword": "merchantCode",   "displayOn": "none" },
+        { "value": "10000001",                     "keyword": "terminalNumber", "displayOn": "none" },
+        { "value": "C",                            "keyword": "cardType",       "displayOn": "none" },
+        { "value": "555912",                       "keyword": "bin",            "displayOn": "none" },
+        { "value": 1,                              "keyword": "installments",   "displayOn": "none" },
+        { "value": "4753",                         "keyword": "lastDigits",     "displayOn": "none" },
+        { "value": "cbd306y665508789e150bacc84f4facd", "keyword": "id",          "displayOn": "none" },
+        { "value": "000",                          "keyword": "b24",            "displayOn": "none" }
+      ],
+      "internalReference": 94236,
+      "paymentMethodName": "Master"
+    }
+  ],
+  "subscription": null
+}
