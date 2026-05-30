@@ -24,7 +24,7 @@
     "allowPartial": false
   },
   "expiration": "2026-05-26T15:00:00-05:00",
-  "returnUrl": "https://mystore.cl/payments/return?reference=ORDER-2026-0001",
+  "returnUrl": "https://mystore.cl/payments/return/{reference}",
   "cancelUrl": "https://mystore.cl/payments/cancel",
   "ipAddress": "190.251.4.78",
   "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36"
