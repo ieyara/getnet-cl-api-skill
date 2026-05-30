@@ -25,7 +25,7 @@ Creates a payment session and returns `{ requestId, processUrl }`. Redirect the 
     "fields":       [ /* optional */ ]
   },
   "expiration": "2026-05-26T15:00:00-04:00",
-  "returnUrl":  "https://mystore.cl/payments/return?reference=ORDER-2026-0001",
+  "returnUrl":  "https://mystore.cl/payments/return/{reference}",
   "cancelUrl":  "https://mystore.cl/payments/cancel",
   "ipAddress":  "190.251.4.78",
   "userAgent":  "Mozilla/5.0 …",
@@ -44,7 +44,7 @@ Creates a payment session and returns `{ requestId, processUrl }`. Redirect the 
 | `payer`           | O   | Person paying if different from buyer. |
 | `payment`         | R   | See **PaymentRequest** below. |
 | `expiration`      | R   | ISO 8601 with offset. Must be ≥ 5 min in the future. Recommended: 15 min. After this the session expires regardless of user activity. |
-| `returnUrl`       | R   | Where to send the user when they click "Return to merchant" on the hosted page. Include something to identify the order: `https://mystore.cl/return?reference={reference}`. |
+| `returnUrl`       | R   | Where to send the user when they click "Return to merchant" on the hosted page. See **returnUrl placeholders** below — Getnet substitutes `{reference}` server-side with the actual `payment.reference`, so send it **literally** in the string. |
 | `cancelUrl`       | O   | Where to send the user if they abort. |
 | `ipAddress`       | R   | Cardholder's IP, captured by your backend. |
 | `userAgent`       | R   | Cardholder's user-agent string. |
@@ -109,6 +109,31 @@ Creates a payment session and returns `{ requestId, processUrl }`. Redirect the 
 Action on `status.status === "OK"`: redirect to `processUrl`, or feed it to `P.init(processUrl)` in the lightbox.
 
 If `status.status === "FAILED"`, inspect `reason` — auth failures land in the 100–104 range (see `references/authentication.md`); business failures use the codes in `references/error-codes.md`.
+
+## returnUrl placeholders
+
+The `returnUrl` is where Getnet sends the cardholder when they click "Return to merchant" after paying (or aborting). To let your landing page identify which order the user is coming back from, include the order's `reference` in the URL.
+
+Getnet supports a **literal placeholder** `{reference}` in `returnUrl`: send the string `{reference}` exactly as written (curly braces and all), and Getnet replaces it with the actual `payment.reference` value at redirect time. **Do not** interpolate the value yourself when using the placeholder form.
+
+```jsonc
+{
+  "payment": { "reference": "ORDER-2026-0001", /* … */ },
+  // Send this string verbatim — Getnet substitutes {reference} → ORDER-2026-0001:
+  "returnUrl": "https://mystore.cl/payments/return/{reference}"
+  // At redirect time the browser lands on:
+  //   https://mystore.cl/payments/return/ORDER-2026-0001
+}
+```
+
+Use the placeholder anywhere in the URL (path or query string):
+
+- `https://mystore.cl/payments/return/{reference}`
+- `https://mystore.cl/payments/return?ref={reference}`
+
+If you prefer, you can also build the URL yourself by interpolating the reference into the string before sending it (e.g. `` `${RETURN_URL}/${reference}` ``) — both forms work, but the literal `{reference}` placeholder is the form recommended by the manual because it keeps the URL stable and decouples the routing from your code.
+
+> **Note:** `{` and `}` are listed as reserved characters for *free-text* fields (`description`, `reference`, names, addresses). They are **allowed** inside `returnUrl` precisely because Getnet parses the placeholder syntax there.
 
 ## Reserved characters
 

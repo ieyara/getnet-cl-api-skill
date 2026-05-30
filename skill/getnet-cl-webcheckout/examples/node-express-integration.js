@@ -5,7 +5,9 @@
 //   GETNET_BASE_URL          https://checkout.test.getnet.cl   (or .../checkout.getnet.cl)
 //   GETNET_LOGIN             site identifier from Getnet
 //   GETNET_SECRET_KEY        secret key from Getnet
-//   GETNET_RETURN_URL        e.g. https://mystore.cl/payments/return
+//   GETNET_RETURN_URL        e.g. https://mystore.cl/payments/return/{reference}
+//                            — include the literal placeholder {reference}; Getnet
+//                              substitutes it with payment.reference at redirect time.
 //
 // notificationUrl is configured by Getnet at the account level (not per-request).
 
@@ -64,7 +66,10 @@ app.post('/api/checkout/start', async (req, res) => {
       allowPartial: false,
     },
     expiration: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-    returnUrl: `${RETURN_URL}?reference=${encodeURIComponent(reference)}`,
+    // RETURN_URL must contain the literal `{reference}` placeholder
+    // (e.g. https://mystore.cl/payments/return/{reference}). Getnet
+    // substitutes it with payment.reference when redirecting the user.
+    returnUrl: RETURN_URL,
     ipAddress: ip,
     userAgent,
   };
@@ -80,8 +85,11 @@ app.post('/api/checkout/start', async (req, res) => {
 });
 
 // ----- 2. Confirm status after the cardholder returns -----
-app.get('/payments/return', async (req, res) => {
-  const { reference } = req.query;
+// Route must match the shape of GETNET_RETURN_URL. With
+// `https://mystore.cl/payments/return/{reference}` Getnet substitutes the
+// placeholder and the browser lands on `/payments/return/<the-reference>`.
+app.get('/payments/return/:reference', async (req, res) => {
+  const { reference } = req.params;
   // Look up requestId by reference in your DB.
   const requestId = await db.findRequestId(reference);
 
