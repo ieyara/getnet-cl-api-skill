@@ -99,15 +99,18 @@ app.get('/payments/return/:reference', async (req, res) => {
 });
 
 // ----- 3. Async notification (source of truth) -----
+// Getnet signs the notification with SHA-1 (plain 40-char hex, no prefix) — this
+// is what production actually sends, despite the manual documenting SHA-256.
+// Validate SHA-1 first and accept SHA-256 defensively; strip any prefix.
 function verifyNotification(body) {
-  const expected = crypto
-    .createHash('sha256')
-    .update(`${body.requestId}${body.status.status}${body.status.date}${SECRET}`)
-    .digest('hex');
-  const provided = (body.signature || '').replace(/^sha256:/, '');
-  const a = Buffer.from(expected, 'hex');
-  const b = Buffer.from(provided, 'hex');
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  const provided = (body.signature || '').replace(/^sha\d+:/, '');
+  const data = `${body.requestId}${body.status.status}${body.status.date}${SECRET}`;
+  return ['sha1', 'sha256'].some((algo) => {
+    const expected = crypto.createHash(algo).update(data).digest('hex');
+    const a = Buffer.from(expected, 'hex');
+    const b = Buffer.from(provided, 'hex');
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  });
 }
 
 app.post('/webhooks/getnet', async (req, res) => {
