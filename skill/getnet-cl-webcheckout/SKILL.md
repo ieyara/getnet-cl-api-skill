@@ -49,7 +49,7 @@ GetNet Chile's Web Checkout is a redirect/lightbox payment gateway. The merchant
 ## Helper scripts
 
 - `scripts/generate-auth.js` — given `GETNET_LOGIN` and `GETNET_SECRET_KEY` env vars, prints a ready-to-paste `auth` object. Use this to verify a user's credentials work before integrating.
-- `scripts/validate-signature.js` — given a captured notification payload and the `secretKey`, checks whether the `signature` field matches `sha256(requestId + status.status + status.date + secretKey)`. Use this to debug "I'm getting notifications but they fail validation".
+- `scripts/validate-signature.js` — given a captured notification payload and the `secretKey`, checks whether the `signature` field matches `HASH(requestId + status.status + status.date + secretKey)`. **The notification signature is SHA-1** (plain 40-char hex, no prefix) in production — Getnet support verified this against a live `notificationUrl`, even though the manual says SHA-256. The script validates SHA-1 first and accepts SHA-256 as a fallback. Use this to debug "I'm getting notifications but they fail validation" / `401 invalid_signature`.
 
 Both scripts are dependency-free Node (only the built-in `crypto` module).
 

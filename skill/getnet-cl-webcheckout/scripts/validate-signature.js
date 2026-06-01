@@ -7,9 +7,13 @@
 //
 // Exit code 0 → signature OK. Exit code 1 → mismatch or error.
 //
-// Formula (from the manual):
-//   signature = sha256( requestId + status.status + status.date + secretKey )
-// A `sha256:` prefix on the wire is optional and stripped before comparison.
+// Formula:
+//   signature = HASH( requestId + status.status + status.date + secretKey )
+// HASH is SHA-1 in practice — Getnet support verified (Postman against a real
+// notificationUrl) that live notifications carry a 40-char SHA-1 hex digest with
+// NO prefix. The manual documents SHA-256 with a `sha256:` prefix; that does not
+// match production. This script validates SHA-1 first and accepts SHA-256 as a
+// defensive fallback, and strips any `sha1:`/`sha256:` prefix before comparing.
 
 const crypto = require('node:crypto');
 const fs = require('node:fs');
@@ -47,26 +51,29 @@ if (requestId == null || !status?.status || !status?.date || !signature) {
   process.exit(1);
 }
 
-const expected = crypto
-  .createHash('sha256')
-  .update(`${requestId}${status.status}${status.date}${secretKey}`)
-  .digest('hex');
+const data = `${requestId}${status.status}${status.date}${secretKey}`;
+const provided = String(signature).replace(/^sha\d+:/, '');
+const providedBuf = Buffer.from(provided, 'hex');
 
-const provided = String(signature).replace(/^sha256:/, '');
+// SHA-1 is what Getnet sends; SHA-256 is the manual's (incorrect) documentation.
+const candidates = ['sha1', 'sha256'].map((algo) => ({
+  algo,
+  expected: crypto.createHash(algo).update(data).digest('hex'),
+}));
 
-const a = Buffer.from(expected, 'hex');
-const b = Buffer.from(provided, 'hex').length === a.length
-  ? Buffer.from(provided, 'hex')
-  : Buffer.alloc(a.length); // force mismatch if lengths differ
-const matches = a.length === Buffer.from(provided, 'hex').length
-  && crypto.timingSafeEqual(a, b);
+const match = candidates.find(({ expected }) => {
+  const a = Buffer.from(expected, 'hex');
+  return a.length === providedBuf.length && crypto.timingSafeEqual(a, providedBuf);
+});
 
-if (matches) {
-  console.log('Signature OK');
+if (match) {
+  console.log(`Signature OK (${match.algo})`);
   process.exit(0);
 } else {
   console.error('Signature MISMATCH');
-  console.error(`  expected: ${expected}`);
-  console.error(`  provided: ${provided}`);
+  for (const { algo, expected } of candidates) {
+    console.error(`  expected (${algo}): ${expected}`);
+  }
+  console.error(`  provided:        ${provided}`);
   process.exit(1);
 }

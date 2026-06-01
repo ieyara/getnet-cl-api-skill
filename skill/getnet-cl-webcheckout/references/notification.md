@@ -21,38 +21,50 @@ The `notificationUrl` is **not** sent on `CreateRequest`. It is configured once 
   },
   "requestId": 1234,
   "reference": "TEST_123424",
-  "signature": "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0…"
+  "signature": "ce75b96fee29881acf630dbf51f7d61744ebbd25"
 }
 ```
+
+> **⚠️ Signature algorithm — SHA-1, plain hex, NO prefix (the manual is wrong here).**
+> The written manual (v2.3) documents the `signature` as **SHA-256** carrying a `sha256:` prefix. **Live notifications do not match the manual.** Getnet integration support has verified (Postman tests against a real `notificationUrl`) that the signature is:
+> - **SHA-1**, not SHA-256 — a 40-character hex string (e.g. `ce75b96fee29881acf630dbf51f7d61744ebbd25`). SHA-256 would be 64 hex chars.
+> - **plain**, with **no `sha1:` / `sha256:` prefix** on the wire.
+>
+> If your handler validates SHA-256 (or requires a prefix), legitimate Getnet notifications are rejected with `401 invalid_signature`. Treat **SHA-1 as the required algorithm**; the validator below still strips any prefix and also accepts SHA-256 purely defensively. Confirm for your specific merchant with Getnet (integracionweb@getnet.cl) if in doubt.
 
 ## Validating the signature (mandatory)
 
 The notification crosses the public internet, so verify it before trusting it. Two layers:
 
-### Layer 1 — HMAC check
+### Layer 1 — signature check
+
+The signature is a hash over the same concatenated fields, differing only in algorithm:
 
 ```
-hash = sha256( requestId + status.status + status.date + secretKey )
+hash = sha1(   requestId + status.status + status.date + secretKey )   // what Getnet actually sends (40 hex chars)
+hash = sha256( requestId + status.status + status.date + secretKey )   // what the manual documents (64 hex chars)
 ```
 
 - Concatenation is plain string concatenation, no separators.
-- Compare against `signature`, **stripping the optional `sha256:` prefix** if present.
+- `signature` arrives as **plain hex with no prefix**. The code still strips a `sha1:` / `sha256:` prefix defensively, in case Getnet ever adds one.
+- Validate against **SHA-1 first** (the algorithm Getnet uses), and accept SHA-256 as a fallback so the handler keeps working if a merchant/environment ever follows the manual.
 
 ```js
 import crypto from 'node:crypto';
 
 export function verifyNotification(body, secretKey) {
-  const expected = crypto
-    .createHash('sha256')
-    .update(`${body.requestId}${body.status.status}${body.status.date}${secretKey}`)
-    .digest('hex');
+  // Strip any algorithm prefix (e.g. "sha1:" or "sha256:").
+  const provided = (body.signature || '').replace(/^sha\d+:/, '');
+  const data = `${body.requestId}${body.status.status}${body.status.date}${secretKey}`;
 
-  const provided = (body.signature || '').replace(/^sha256:/, '');
-
-  // Constant-time compare to avoid timing attacks.
-  const a = Buffer.from(expected, 'hex');
-  const b = Buffer.from(provided, 'hex');
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  // SHA-1 is what Getnet sends in practice; SHA-256 is the manual's documented
+  // algorithm. Accept either, using a constant-time compare to avoid timing attacks.
+  return ['sha1', 'sha256'].some((algo) => {
+    const expected = crypto.createHash(algo).update(data).digest('hex');
+    const a = Buffer.from(expected, 'hex');
+    const b = Buffer.from(provided, 'hex');
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  });
 }
 ```
 
